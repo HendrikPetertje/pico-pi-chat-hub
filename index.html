@@ -132,13 +132,52 @@
       font-size: 0.7rem;
       color: rgba(255,255,255,0.4);
       text-align: right;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 5px;
     }
+
+    #status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+
+    #status-dot.online  { background: #4ade80; }
+    #status-dot.offline { background: #f87171; }
+    #status-dot.slow    { background: #fbbf24; }
+
+    #banner {
+      display: none;
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      background: rgba(239,68,68,0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #fff;
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      z-index: 10;
+    }
+
+    #banner.visible { display: block; }
   </style>
 </head>
 <body>
+  <div id="banner"></div>
   <h1>PevaPub &mdash; local chat</h1>
   <div id="log"></div>
-  <div id="status">connecting&hellip;</div>
+  <div id="status"><span id="status-dot"></span><span id="status-text">connecting&hellip;</span></div>
   <form id="form">
     <input id="username" type="text" placeholder="name" maxlength="10" autocomplete="off" required>
     <input id="message" type="text" placeholder="message" maxlength="250" autocomplete="off" required>
@@ -148,17 +187,47 @@
   <script>
     const log    = document.getElementById('log');
     const form   = document.getElementById('form');
-    const status = document.getElementById('status');
+    const status = document.getElementById('status-text');
+    const dot    = document.getElementById('status-dot');
+    const banner = document.getElementById('banner');
     const uInput = document.getElementById('username');
     const mInput = document.getElementById('message');
 
+    // --- Status dot ---
+    function setStatus(state, text) {
+      status.textContent = text;
+      dot.className = state; // 'online' | 'slow' | 'offline'
+    }
+
+    // --- Error banner ---
+    let bannerTimer = null;
+    function showBanner(text, durationMs = 4000) {
+      clearTimeout(bannerTimer);
+      banner.textContent = text;
+      banner.classList.add('visible');
+      bannerTimer = setTimeout(() => banner.classList.remove('visible'), durationMs);
+    }
+
+    // --- Fetch with timeout ---
+    function fetchWithTimeout(url, options, timeout) {
+      const ctrl = new AbortController();
+      const slowTimer = setTimeout(() => setStatus('slow',    'slow\u2026'),    5000);
+      const deadTimer = setTimeout(() => setStatus('offline', 'disconnected'), 10000);
+      const killTimer = setTimeout(() => ctrl.abort(),                         timeout);
+      return fetch(url, { ...options, signal: ctrl.signal }).finally(() => {
+        clearTimeout(slowTimer);
+        clearTimeout(deadTimer);
+        clearTimeout(killTimer);
+      });
+    }
+
+    // --- Messages ---
     let lastId = 0;
 
     function renderMessages(msgs) {
       for (const msg of msgs) {
         if (msg.id <= lastId) continue;
         lastId = msg.id;
-
         const div = document.createElement('div');
         div.className = 'msg';
         div.innerHTML =
@@ -178,19 +247,29 @@
         .replace(/"/g, '&quot;');
     }
 
+    // --- Poll ---
+    let polling = false;
+
     async function poll() {
+      if (polling) return;
+      polling = true;
       try {
-        const res = await fetch('/messages');
+        const res = await fetchWithTimeout('/messages', {}, 15000);
         if (res.ok) {
           const msgs = await res.json();
           renderMessages(msgs);
-          status.textContent = 'connected';
+          setStatus('online', 'connected');
+        } else {
+          setStatus('offline', 'disconnected');
         }
       } catch {
-        status.textContent = 'offline';
+        setStatus('offline', 'disconnected');
+      } finally {
+        polling = false;
       }
     }
 
+    // --- Send ---
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const u       = uInput.value.trim();
@@ -201,22 +280,22 @@
       btn.disabled = true;
 
       try {
-        await fetch('/messages', {
+        await fetchWithTimeout('/messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ u, message }),
-        });
+        }, 10000);
         mInput.value = '';
         await poll();
       } catch {
-        status.textContent = 'send failed';
+        showBanner('Message failed \u2014 connection problems');
       } finally {
         btn.disabled = false;
         mInput.focus();
       }
     });
 
-    // Save username across page loads
+    // --- Persist username ---
     uInput.value = localStorage.getItem('pi-room-user') || '';
     uInput.addEventListener('change', () => {
       localStorage.setItem('pi-room-user', uInput.value);
@@ -225,7 +304,7 @@
     poll();
     setInterval(poll, 3000);
 
-    // Resize layout to the visual viewport so the keyboard doesn't push content off screen
+    // --- Resize to visual viewport (keeps layout above keyboard) ---
     function fitViewport() {
       const vv = window.visualViewport;
       if (!vv) return;
