@@ -1,77 +1,71 @@
-# pi-room
+# AdrianRoom
 
-A minimal local chat room running entirely on a Raspberry Pi Pico W2 via MicroPython.
+Ett minimalt lokalt chattrum som körs helt på en Raspberry Pi Pico W2 via MicroPython.
 
-No internet required. No server. Just a Pi, a WiFi radio, and a browser.
+Inget internet behövs. Ingen server. Bara en Pi, ett WiFi-kort och en webbläsare.
 
-## What it does
+## Vad det gör
 
-- Creates an open WiFi network called `pi-room`
-- Serves a chat UI at `http://chat.dev/` (via a local DNS responder)
-- Accepts and stores the last 5 messages in RAM
-- Polls for new messages every 3 seconds
+- Skapar ett öppet WiFi-nätverk med namnet `AdrianRoom`
+- Serverar ett chattgränssnitt på `http://192.168.4.1/`
+- Sparar de senaste 10 meddelandena i RAM-minnet
+- Hämtar nya meddelanden var tredje sekund
+- Hanterar flera anslutna klienter samtidigt via en icke-blockerande eventloop
 
-## File layout
+## Filstruktur
 
 ```
-main.py      — boot script: sets up AP, starts DNS + HTTP
-dns.py       — minimal UDP DNS server (answers all A queries with Pi's IP)
-server.py    — minimal HTTP server (GET /, GET /messages, POST /messages)
-index.html   — chat UI (vanilla JS, dark theme, no dependencies)
+main.py      — startar AP och HTTP-servern
+server.py    — HTTP-server (GET /, GET /messages, POST /messages)
+index.html   — chattgränssnitt (vanilla JS, liquid glass-design)
 ```
 
-## Deploying to the Pico
+## Driftsättning på Pico
 
-You need [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html) or [Thonny](https://thonny.org/).
+Du behöver [Thonny](https://thonny.org/) eller [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html).
 
-### With mpremote
+### Med Thonny
+
+1. Öppna **Files**-panelen (View → Files).
+2. Högerklicka på varje fil i vänstra panelen → **Upload to /**.
+3. Ladda upp: `main.py`, `server.py`, `index.html`.
+4. Starta om Pico via knappen eller genom att koppla ur strömmen.
+
+### Med mpremote
 
 ```sh
 pip install mpremote
 
-# Copy all files to the Pico root
-mpremote cp main.py dns.py server.py index.html :
+# Kopiera alla filer till Pico
+mpremote cp main.py server.py index.html :
 
-# Reset and watch logs
+# Starta om och följ loggar
 mpremote reset
 mpremote connect auto repl
 ```
 
-### With Thonny
+## Ansluta
 
-1. Open each file and use **File → Save as… → Raspberry Pi Pico**.
-2. Save `main.py` last (it runs on boot).
-3. Press the reset button or power-cycle the Pico.
+1. Anslut din telefon eller dator till WiFi-nätverket `AdrianRoom` (inget lösenord).
+2. Öppna `http://192.168.4.1/` i webbläsaren.
+3. Ange ett namn och börja chatta.
 
-## Connecting
+> Ditt användarnamn sparas i `localStorage` så du slipper skriva in det igen.
 
-1. On your phone or laptop, join the `pi-room` WiFi network (no password).
-2. Navigate to `http://chat.dev/` in your browser.
-   - If DNS doesn't resolve, go to `http://192.168.4.1/` directly.
-3. Enter a name and start chatting.
+## Konfiguration
 
-> Your username is saved in `localStorage` so you don't have to retype it.
+Ändra toppen av `main.py` för att justera inställningarna:
 
-## Caveats
-
-- **No DHCP**: clients must either accept an auto-assigned address from the AP's
-  built-in DHCP (the Pico W's network stack provides basic DHCP in AP mode) or
-  set a static IP in the `192.168.4.x` range manually.
-- **Single-threaded HTTP**: one request is served at a time. Fine for a small group.
-- **Messages are in RAM**: they are lost on reboot.
-- **DNS resolves everything to the Pi**: any domain typed in a browser will
-  point here, which is intentional for captive-portal convenience.
-
-## Configuration
-
-Edit the top of `main.py` to change:
-
-| Variable | Default | Description |
+| Variabel | Standard | Beskrivning |
 |---|---|---|
-| `AP_SSID` | `"pi-room"` | WiFi network name |
-| `AP_PASSWORD` | `""` | Empty = open network |
-| `PI_IP` | `"192.168.4.1"` | Pi's IP on the AP |
-| `CHAT_DOMAIN` | `"chat.dev"` | Domain to advertise |
-| `MAX_MESSAGES` | `5` | Messages kept in RAM |
-| `MAX_USERNAME` | `10` | Max username length |
-| `MAX_MESSAGE` | `250` | Max message length |
+| `AP_SSID` | `"AdrianRoom"` | WiFi-nätverkets namn |
+| `AP_PASSWORD` | `""` | Tomt = öppet nätverk |
+| `MAX_MESSAGES` | `10` | Antal meddelanden i RAM |
+| `MAX_USERNAME` | `10` | Max längd på användarnamn |
+| `MAX_MESSAGE` | `250` | Max längd på meddelande |
+
+## Begränsningar
+
+- **Meddelanden lagras i RAM** — försvinner vid omstart.
+- **Max 10 meddelanden** — äldre meddelanden tas bort automatiskt.
+- **Ingen DNS** — använd alltid `http://192.168.4.1/` direkt i webbläsaren.
