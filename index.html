@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>pi-room</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: monospace;
+      background: linear-gradient(160deg, #a8d8f0 0%, #5aaee8 40%, #2a7fd4 100%);
+      background-attachment: fixed;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      inset: 0;
+      padding: 12px;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    #log {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.45);
+    }
+
+    .msg {
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      line-height: 1.4;
+    }
+
+    .msg .user {
+      color: #fff;
+      font-weight: bold;
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .msg .text {
+      color: rgba(255,255,255,0.92);
+      word-break: break-word;
+    }
+
+    .msg .id {
+      color: rgba(255,255,255,0.28);
+      font-size: 0.7rem;
+      flex-shrink: 0;
+    }
+
+    #form {
+      display: flex;
+      gap: 8px;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 14px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.45);
+      padding: 8px;
+    }
+
+    #username {
+      width: 90px;
+      flex-shrink: 0;
+    }
+
+    #message {
+      flex: 1;
+    }
+
+    input {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #fff;
+      padding: 8px 10px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      outline: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    input::placeholder { color: rgba(255,255,255,0.45); }
+
+    input:focus {
+      background: rgba(255,255,255,0.32);
+      border-color: rgba(255,255,255,0.75);
+    }
+
+    button {
+      background: rgba(255,255,255,0.88);
+      color: #2a7fd4;
+      border: 1px solid rgba(255,255,255,0.6);
+      padding: 8px 14px;
+      font-family: monospace;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      transition: background 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    button:active { background: rgba(255,255,255,0.65); }
+    button:disabled { opacity: 0.4; cursor: default; }
+
+    #status {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <h1>pi-room &mdash; local chat</h1>
+  <div id="log"></div>
+  <div id="status">connecting&hellip;</div>
+  <form id="form">
+    <input id="username" type="text" placeholder="name" maxlength="10" autocomplete="off" required>
+    <input id="message" type="text" placeholder="message" maxlength="250" autocomplete="off" required>
+    <button type="submit">&#8594;</button>
+  </form>
+
+  <script>
+    const log    = document.getElementById('log');
+    const form   = document.getElementById('form');
+    const status = document.getElementById('status');
+    const uInput = document.getElementById('username');
+    const mInput = document.getElementById('message');
+
+    let lastId = 0;
+
+    function renderMessages(msgs) {
+      for (const msg of msgs) {
+        if (msg.id <= lastId) continue;
+        lastId = msg.id;
+
+        const div = document.createElement('div');
+        div.className = 'msg';
+        div.innerHTML =
+          `<span class="id">#${msg.id}</span>` +
+          `<span class="user">${esc(msg.u)}</span>` +
+          `<span class="text">${esc(msg.m)}</span>`;
+        log.appendChild(div);
+      }
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    async function poll() {
+      try {
+        const res = await fetch('/messages');
+        if (res.ok) {
+          const msgs = await res.json();
+          renderMessages(msgs);
+          status.textContent = 'connected';
+        }
+      } catch {
+        status.textContent = 'offline';
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const u       = uInput.value.trim();
+      const message = mInput.value.trim();
+      if (!u || !message) return;
+
+      const btn = form.querySelector('button');
+      btn.disabled = true;
+
+      try {
+        await fetch('/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ u, message }),
+        });
+        mInput.value = '';
+        await poll();
+      } catch {
+        status.textContent = 'send failed';
+      } finally {
+        btn.disabled = false;
+        mInput.focus();
+      }
+    });
+
+    // Save username across page loads
+    uInput.value = localStorage.getItem('pi-room-user') || '';
+    uInput.addEventListener('change', () => {
+      localStorage.setItem('pi-room-user', uInput.value);
+    });
+
+    poll();
+    setInterval(poll, 3000);
+
+    // Resize layout to the visual viewport so the keyboard doesn't push content off screen
+    function fitViewport() {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      document.body.style.height = vv.height + 'px';
+      document.body.style.top    = vv.offsetTop + 'px';
+    }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', fitViewport);
+      window.visualViewport.addEventListener('scroll', fitViewport);
+      fitViewport();
+    }
+  </script>
+</body>
+</html>
