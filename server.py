@@ -35,6 +35,13 @@ HEADERS_405 = (
     "Connection: close\r\n"
 )
 
+HEADERS_302 = (
+    "HTTP/1.1 302 Found\r\n"
+    "Content-Type: text/plain\r\n"
+    "Location: http://192.168.4.1/\r\n"
+    "Connection: close\r\n"
+)
+
 MAX_HEADER_SIZE = 4096   # bytes; cap unbounded header reads
 MAX_BODY_SIZE   = 1024   # bytes; cap POST body
 CONN_TIMEOUT    = 15     # seconds; drop slow/hung clients
@@ -99,7 +106,8 @@ class HTTPServer:
                 _send(conn, HEADERS_405, "Method Not Allowed")
 
         else:
-            _send(conn, HEADERS_404, "Not Found")
+            # Redirect anything unknown (captive portal probes) to root
+            _send(conn, HEADERS_302, "Redirecting...")
 
     def _serve_index(self, conn):
         try:

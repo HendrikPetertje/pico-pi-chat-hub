@@ -1,71 +1,83 @@
-# AdrianRoom
+# PevaPub
 
-Ett minimalt lokalt chattrum som körs helt på en Raspberry Pi Pico W2 via MicroPython.
+A minimal local chat room running entirely on a Raspberry Pi Pico W2 via MicroPython.
 
-Inget internet behövs. Ingen server. Bara en Pi, ett WiFi-kort och en webbläsare.
+No internet required. No server. Just a Pi, a WiFi radio, and a browser.
 
-## Vad det gör
+## What it does
 
-- Skapar ett öppet WiFi-nätverk med namnet `AdrianRoom`
-- Serverar ett chattgränssnitt på `http://192.168.4.1/`
-- Sparar de senaste 10 meddelandena i RAM-minnet
-- Hämtar nya meddelanden var tredje sekund
-- Hanterar flera anslutna klienter samtidigt via en icke-blockerande eventloop
+- Creates an open WiFi network called `PevaPub`
+- Triggers the captive portal popup automatically when a device connects
+- Serves a chat UI at `http://192.168.4.1/`
+- Stores the last 10 messages in RAM
+- Polls for new messages every 3 seconds
+- Handles multiple connected clients simultaneously via a non-blocking event loop
+- Blinks the onboard LED to indicate status
 
-## Filstruktur
+## LED status
+
+| Pattern | Meaning |
+|---|---|
+| 1 blink | AP is up and broadcasting |
+| 2 blinks → stays on | HTTP server running, all good |
+| 3 blinks repeating | Fatal server error |
+
+## File layout
 
 ```
-main.py      — startar AP och HTTP-servern
-server.py    — HTTP-server (GET /, GET /messages, POST /messages)
-index.html   — chattgränssnitt (vanilla JS, liquid glass-design)
+main.py      — boot script: sets up AP, DNS, and HTTP server
+dns.py       — minimal UDP DNS server (answers all queries with Pi's IP)
+server.py    — non-blocking HTTP server (GET /, GET /messages, POST /messages)
+index.html   — chat UI (vanilla JS, liquid glass design, no dependencies)
 ```
 
-## Driftsättning på Pico
+## Deploying to the Pico
 
-Du behöver [Thonny](https://thonny.org/) eller [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html).
+You need [Thonny](https://thonny.org/) or [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html).
 
-### Med Thonny
+### With Thonny
 
-1. Öppna **Files**-panelen (View → Files).
-2. Högerklicka på varje fil i vänstra panelen → **Upload to /**.
-3. Ladda upp: `main.py`, `server.py`, `index.html`.
-4. Starta om Pico via knappen eller genom att koppla ur strömmen.
+1. Open the **Files** panel (View → Files).
+2. Right-click each file in the left pane → **Upload to /**.
+3. Upload: `main.py`, `dns.py`, `server.py`, `index.html`.
+4. Reboot the Pico via the reset button or by power-cycling it.
 
-### Med mpremote
+### With mpremote
 
 ```sh
 pip install mpremote
 
-# Kopiera alla filer till Pico
-mpremote cp main.py server.py index.html :
+# Copy all files to the Pico root
+mpremote cp main.py dns.py server.py index.html :
 
-# Starta om och följ loggar
+# Reset and watch logs
 mpremote reset
 mpremote connect auto repl
 ```
 
-## Ansluta
+## Connecting
 
-1. Anslut din telefon eller dator till WiFi-nätverket `AdrianRoom` (inget lösenord).
-2. Öppna `http://192.168.4.1/` i webbläsaren.
-3. Ange ett namn och börja chatta.
+1. Join the `PevaPub` WiFi network on your phone or laptop (no password).
+2. The captive portal browser should pop up automatically.
+3. If it doesn't, open `http://192.168.4.1/` manually in your browser.
+4. Enter a name and start chatting.
 
-> Ditt användarnamn sparas i `localStorage` så du slipper skriva in det igen.
+> Your username is saved in `localStorage` so you don't have to retype it.
 
-## Konfiguration
+## Configuration
 
-Ändra toppen av `main.py` för att justera inställningarna:
+Edit the top of `main.py` to change settings:
 
-| Variabel | Standard | Beskrivning |
+| Variable | Default | Description |
 |---|---|---|
-| `AP_SSID` | `"AdrianRoom"` | WiFi-nätverkets namn |
-| `AP_PASSWORD` | `""` | Tomt = öppet nätverk |
-| `MAX_MESSAGES` | `10` | Antal meddelanden i RAM |
-| `MAX_USERNAME` | `10` | Max längd på användarnamn |
-| `MAX_MESSAGE` | `250` | Max längd på meddelande |
+| `AP_SSID` | `"PevaPub"` | WiFi network name |
+| `AP_PASSWORD` | `""` | Empty = open network |
+| `MAX_MESSAGES` | `10` | Messages kept in RAM |
+| `MAX_USERNAME` | `10` | Max username length |
+| `MAX_MESSAGE` | `250` | Max message length |
 
-## Begränsningar
+## Caveats
 
-- **Meddelanden lagras i RAM** — försvinner vid omstart.
-- **Max 10 meddelanden** — äldre meddelanden tas bort automatiskt.
-- **Ingen DNS** — använd alltid `http://192.168.4.1/` direkt i webbläsaren.
+- **Messages are in RAM** — lost on reboot.
+- **No persistence** — there is no filesystem-based message log.
+- **DNS resolves everything to the Pi** — any domain typed in a browser will point here, which is intentional for captive portal behaviour.

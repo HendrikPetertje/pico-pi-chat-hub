@@ -1,10 +1,12 @@
 import network
 import time
+import _thread
 from machine import Pin
+from dns import DNSServer
 from server import HTTPServer
 
 # --- Config ---
-AP_SSID = "AdrianRoom"
+AP_SSID = "PevaPub"
 AP_PASSWORD = ""  # open network
 
 # --- Message store ---
@@ -55,9 +57,13 @@ def main():
     blink(1)  # AP is up
 
     ip = ap.ifconfig()[0]
+    dns = DNSServer(ip)
     http = HTTPServer(messages, add_message)
+    print(f"DNS  listening on {ip}:53")
     print(f"HTTP listening on {ip}:80")
     print(f"Visit http://{ip}/ after connecting to '{AP_SSID}'")
+
+    _thread.start_new_thread(dns.run, ())
 
     blink(2)   # everything ready
     led.on()   # stay on
