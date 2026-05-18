@@ -9,7 +9,7 @@
 
     body {
       font-family: monospace;
-      background: linear-gradient(160deg, #a8d8f0 0%, #5aaee8 40%, #2a7fd4 100%);
+      background: linear-gradient(160deg, #4a9cc7 0%, #3a8fd4 40%, #2a7fd4 100%);
       background-attachment: fixed;
       color: #fff;
       display: flex;
@@ -21,11 +21,48 @@
       overflow: hidden;
     }
 
+    #topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
     h1 {
       font-size: 0.85rem;
       color: rgba(255,255,255,0.6);
       letter-spacing: 0.12em;
       text-transform: uppercase;
+    }
+
+    nav {
+      display: flex;
+      gap: 4px;
+    }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      text-decoration: none;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      transition: background 0.15s;
+      line-height: 1;
+    }
+
+    nav a:hover {
+      background: rgba(255,255,255,0.28);
+    }
+
+    nav a.disabled {
+      opacity: 0.35;
+      filter: grayscale(1) saturate(0.4) hue-rotate(190deg);
+      pointer-events: none;
+      cursor: default;
     }
 
     #log {
@@ -175,7 +212,14 @@
 </head>
 <body>
   <div id="banner"></div>
-  <h1>PevaPub &mdash; local chat</h1>
+  <div id="topbar">
+    <h1>PevaPub :: local chat</h1>
+    <nav>
+      <a href="/" class="disabled" title="Home">🏠</a>
+      <a href="/info.html" title="Info">ℹ️</a>
+      <a href="/shogi.html" title="Games">♟️</a>
+    </nav>
+  </div>
   <div id="log"></div>
   <div id="status"><span id="status-dot"></span><span id="status-text">connecting&hellip;</span></div>
   <form id="form">
@@ -254,7 +298,7 @@
       if (polling) return;
       polling = true;
       try {
-        const res = await fetchWithTimeout('/messages', {}, 15000);
+        const res = await fetchWithTimeout('/api/messages', {}, 15000);
         if (res.ok) {
           const msgs = await res.json();
           renderMessages(msgs);
@@ -280,7 +324,7 @@
       btn.disabled = true;
 
       try {
-        await fetchWithTimeout('/messages', {
+        await fetchWithTimeout('/api/messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ u, message }),

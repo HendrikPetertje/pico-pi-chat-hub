@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PevaPub :: Games</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: monospace;
+      background: linear-gradient(160deg, #4a9cc7 0%, #3a8fd4 40%, #2a7fd4 100%);
+      background-attachment: fixed;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      inset: 0;
+      padding: 12px;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    #topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    h1 {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    nav {
+      display: flex;
+      gap: 4px;
+    }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      text-decoration: none;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      transition: background 0.15s;
+      line-height: 1;
+    }
+
+    nav a:hover {
+      background: rgba(255,255,255,0.28);
+    }
+
+    nav a.disabled {
+      opacity: 0.35;
+      filter: grayscale(1) saturate(0.4) hue-rotate(190deg);
+      pointer-events: none;
+      cursor: default;
+    }
+
+    #content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.45);
+      color: rgba(255,255,255,0.4);
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+  <div id="topbar">
+    <h1>PevaPub :: Games</h1>
+    <nav>
+      <a href="/" title="Home">🏠</a>
+      <a href="/info.html" title="Info">ℹ️</a>
+      <a href="/shogi.html" class="disabled" title="Games">♟️</a>
+    </nav>
+  </div>
+
+  <div id="content">coming soon</div>
+
+  <script>
+    function fitViewport() {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      document.body.style.height = vv.height + 'px';
+      document.body.style.top    = vv.offsetTop + 'px';
+    }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', fitViewport);
+      window.visualViewport.addEventListener('scroll', fitViewport);
+      fitViewport();
+    }
+  </script>
+</body>
+</html>

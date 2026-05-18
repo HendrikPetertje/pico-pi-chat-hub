@@ -1,8 +1,11 @@
 import socket
-import json
 import uselect
 import uos
 import time
+
+
+
+HTTP_ROOT = "http"
 
 
 HEADERS_200_HTML = (
@@ -84,60 +87,50 @@ def _parse_buf(buf):
 
 
 class HTTPServer:
-    def __init__(self, messages, add_message):
-        self.messages = messages
-        self.add_message = add_message
+    def __init__(self, messages_controller):
+        self.messages_controller = messages_controller
 
     def _dispatch(self, conn, method, path, body):
         print(method, path)
 
-        if path in ("/", "/index.html"):
+        if path.startswith("/api/"):
+            self._dispatch_api(conn, method, path, body)
+        else:
             if method != "GET":
                 _send(conn, HEADERS_405, "Method Not Allowed")
             else:
-                self._serve_index(conn)
+                self._serve_file(conn, path)
 
-        elif path == "/messages":
-            if method == "GET":
-                self._get_messages(conn)
-            elif method == "POST":
-                self._post_message(conn, body)
-            else:
-                _send(conn, HEADERS_405, "Method Not Allowed")
-
+    def _dispatch_api(self, conn, method, path, body):
+        if path == "/api/messages":
+            self.messages_controller.handle(conn, method, body)
         else:
-            # Redirect anything unknown (captive portal probes) to root
-            _send(conn, HEADERS_302, "Redirecting...")
+            _send(conn, HEADERS_404, "Not Found")
 
-    def _serve_index(self, conn):
+    def _serve_file(self, conn, path):
+        # Normalise: "/" -> "/index.html"
+        if path == "/":
+            path = "/index.html"
+
+        # Reject any path that tries to escape the http root
+        if ".." in path:
+            _send(conn, HEADERS_404, "Not Found")
+            return
+
+        file_path = HTTP_ROOT + path
         try:
-            size = uos.stat("index.html")[6]
+            size = uos.stat(file_path)[6]
             header = (HEADERS_200_HTML + "Content-Length: {}\r\n\r\n".format(size)).encode()
             conn.sendall(header)
-            with open("index.html", "rb") as f:
+            with open(file_path, "rb") as f:
                 while True:
                     chunk = f.read(512)
                     if not chunk:
                         break
                     conn.sendall(chunk)
         except OSError:
-            _send(conn, HEADERS_404, "index.html not found")
-
-    def _get_messages(self, conn):
-        _send(conn, HEADERS_200_JSON, json.dumps(self.messages))
-
-    def _post_message(self, conn, body):
-        try:
-            payload = json.loads(body.decode())
-            username = str(payload.get("u", "")).strip()
-            text = str(payload.get("message", "")).strip()
-            if not username or not text:
-                _send(conn, HEADERS_400, '{"error":"u and message are required"}')
-                return
-            self.add_message(username, text)
-            _send(conn, HEADERS_200_JSON, '{"ok":true}')
-        except (ValueError, KeyError) as e:
-            _send(conn, HEADERS_400, json.dumps({"error": "invalid JSON: {}".format(e)}))
+            # File not found — redirect to root (handles captive portal probes)
+            _send(conn, HEADERS_302, "Redirecting...")
 
     def run(self):
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

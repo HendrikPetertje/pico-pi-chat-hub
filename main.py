@@ -4,17 +4,11 @@ import _thread
 from machine import Pin
 from dns import DNSServer
 from server import HTTPServer
+from messages_controller import MessagesController
 
 # --- Config ---
 AP_SSID = "PevaPub"
 AP_PASSWORD = ""  # open network
-
-# --- Message store ---
-messages = []
-message_id = 0
-MAX_MESSAGES = 10
-MAX_USERNAME = 10
-MAX_MESSAGE = 250
 
 # --- Onboard LED ---
 led = Pin("LED", Pin.OUT)
@@ -28,16 +22,6 @@ def blink(times, on_ms=120, off_ms=120):
         led.off()
         if i < times - 1:
             time.sleep_ms(off_ms)
-
-
-def add_message(username, text):
-    global message_id
-    username = username[:MAX_USERNAME]
-    text = text[:MAX_MESSAGE]
-    message_id += 1
-    messages.append({"id": message_id, "u": username, "m": text})
-    if len(messages) > MAX_MESSAGES:
-        messages.pop(0)
 
 
 def setup_ap():
@@ -58,7 +42,8 @@ def main():
 
     ip = ap.ifconfig()[0]
     dns = DNSServer(ip)
-    http = HTTPServer(messages, add_message)
+    messages = MessagesController()
+    http = HTTPServer(messages)
     print(f"DNS  listening on {ip}:53")
     print(f"HTTP listening on {ip}:80")
     print(f"Visit http://{ip}/ after connecting to '{AP_SSID}'")
