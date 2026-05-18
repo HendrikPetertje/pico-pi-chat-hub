@@ -234,9 +234,8 @@
     }
 
     /* --- Captured pieces drawer --- */
-    #captured {
+    .hand-bar {
       display: flex;
-      justify-content: space-between;
       gap: 6px;
       padding: 6px 10px;
       background: rgba(255,255,255,0.12);
@@ -357,14 +356,14 @@
       <button class="btn" id="back-btn">&larr; lobby</button>
       <span id="turn-info"></span>
     </div>
-    <div id="captured">
+    <div class="hand-bar" id="hand-top-bar">
       <div class="hand" id="hand-top"><span class="hand-label">opp</span></div>
-      <div class="hand" id="hand-bottom"><span class="hand-label">you</span></div>
     </div>
     <div id="board-container">
       <div id="board"></div>
     </div>
-    <div id="captured-bottom">
+    <div class="hand-bar" id="hand-bottom-bar">
+      <div class="hand" id="hand-bottom"><span class="hand-label">you</span></div>
     </div>
   </div>
 
