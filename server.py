@@ -87,8 +87,9 @@ def _parse_buf(buf):
 
 
 class HTTPServer:
-    def __init__(self, messages_controller):
+    def __init__(self, messages_controller, games_controller=None):
         self.messages_controller = messages_controller
+        self.games_controller = games_controller
 
     def _dispatch(self, conn, method, path, body):
         print(method, path)
@@ -104,6 +105,8 @@ class HTTPServer:
     def _dispatch_api(self, conn, method, path, body):
         if path == "/api/messages":
             self.messages_controller.handle(conn, method, body)
+        elif path.startswith("/api/games") and self.games_controller:
+            self.games_controller.handle(conn, method, path, body)
         else:
             _send(conn, HEADERS_404, "Not Found")
 
@@ -118,6 +121,11 @@ class HTTPServer:
             return
 
         file_path = HTTP_ROOT + path
+        if not self._stream_file(conn, file_path):
+            # File not found — serve index.html (captive portal fallback)
+            self._stream_file(conn, HTTP_ROOT + "/index.html")
+
+    def _stream_file(self, conn, file_path):
         try:
             size = uos.stat(file_path)[6]
             header = (HEADERS_200_HTML + "Content-Length: {}\r\n\r\n".format(size)).encode()
@@ -128,9 +136,9 @@ class HTTPServer:
                     if not chunk:
                         break
                     conn.sendall(chunk)
+            return True
         except OSError:
-            # File not found — redirect to root (handles captive portal probes)
-            _send(conn, HEADERS_302, "Redirecting...")
+            return False
 
     def run(self):
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

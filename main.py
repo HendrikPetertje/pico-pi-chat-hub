@@ -5,6 +5,7 @@ from machine import Pin
 from dns import DNSServer
 from server import HTTPServer
 from messages_controller import MessagesController
+from games_controller import GamesController
 
 # --- Config ---
 AP_SSID = "PevaPub"
@@ -43,7 +44,8 @@ def main():
     ip = ap.ifconfig()[0]
     dns = DNSServer(ip)
     messages = MessagesController()
-    http = HTTPServer(messages)
+    games = GamesController()
+    http = HTTPServer(messages, games)
     print(f"DNS  listening on {ip}:53")
     print(f"HTTP listening on {ip}:80")
     print(f"Visit http://{ip}/ after connecting to '{AP_SSID}'")
