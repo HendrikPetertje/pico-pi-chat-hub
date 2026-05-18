@@ -122,8 +122,8 @@ class HTTPServer:
 
         file_path = HTTP_ROOT + path
         if not self._stream_file(conn, file_path):
-            # File not found — serve index.html (captive portal fallback)
-            self._stream_file(conn, HTTP_ROOT + "/index.html")
+            # File not found — redirect to root (captive portal trigger)
+            _send(conn, HEADERS_302, "Redirecting...")
 
     def _stream_file(self, conn, file_path):
         try:

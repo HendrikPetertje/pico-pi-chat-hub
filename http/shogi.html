@@ -225,6 +225,14 @@
       color: #fbbf24;
     }
 
+    .cell .piece.gold {
+      color: #d4a017;
+    }
+
+    .cell .piece.silver {
+      color: #fff;
+    }
+
     /* --- Captured pieces drawer --- */
     #captured {
       display: flex;
@@ -338,6 +346,7 @@
     <div id="name-entry">
       <input id="player-name" type="text" placeholder="your name" maxlength="10" autocomplete="off">
       <button class="btn" id="create-btn" disabled>Create game</button>
+      <a href="/shogi-info.html" class="btn" style="text-decoration:none;text-align:center;">Rules</a>
     </div>
     <div id="games-list"><span style="color:rgba(255,255,255,0.4);font-size:0.8rem;">loading...</span></div>
   </div>
@@ -373,10 +382,14 @@
   <script>
     // Piece display mapping using chess UTF symbols
     const PIECE_CHARS = {
-      'K': '♔', 'R': '♖', 'B': '♗', 'G': '♕', 'S': '♘',
+      'K': '♔', 'R': '♖', 'B': '♗', 'G': '♕', 'S': '♕',
       'N': '♞', 'L': '♙', 'P': '♟',
-      '+R': '♖', '+B': '♗', '+S': '♘', '+N': '♞', '+L': '♙', '+P': '♟',
+      '+R': '♖', '+B': '♗', '+S': '♕', '+N': '♞', '+L': '♙', '+P': '♟',
     };
+
+    // Pieces that get special colors
+    const GOLD_PIECES = new Set(['G']);
+    const SILVER_PIECES = new Set(['S']);
 
     function pieceChar(owner, piece) {
       return PIECE_CHARS[piece] || '?';
@@ -567,6 +580,8 @@
             let pcls = 'piece';
             if (owner === (flip ? 1 : 2)) pcls += ' p2';
             if (PROMOTED.has(piece)) pcls += ' promoted';
+            if (GOLD_PIECES.has(piece)) pcls += ' gold';
+            if (SILVER_PIECES.has(piece)) pcls += ' silver';
             inner = `<span class="${pcls}">${ch}</span>`;
           }
           html += `<div class="${cls}" data-r="${r}" data-c="${c}">${inner}</div>`;

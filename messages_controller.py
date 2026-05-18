@@ -2,7 +2,7 @@ import json
 
 from server import HEADERS_200_JSON, HEADERS_400, HEADERS_405, _send
 
-MAX_MESSAGES = 10
+MAX_MESSAGES = 20
 MAX_USERNAME = 10
 MAX_MESSAGE  = 250
 
