@@ -1,4 +1,4 @@
-# PevaPub
+# Peva Gumstick Wifi Pub
 
 A minimal local chat room running entirely on a Raspberry Pi Pico W2 via MicroPython.
 
@@ -7,7 +7,7 @@ No internet required. No server. Just a Pi, a WiFi radio, and a browser.
 ## What it does
 
 - Creates an open WiFi network called `PevaPub`
-- Triggers the captive portal popup automatically when a device connects
+- Triggers the captive portal popup (that login to this wifi hotspot popup you get on airport wifi) automatically when a device connects
 - Serves a chat UI at `http://192.168.4.1/`
 - Stores the last 10 messages in RAM
 - Polls for new messages every 3 seconds
@@ -28,7 +28,7 @@ No internet required. No server. Just a Pi, a WiFi radio, and a browser.
 main.py      — boot script: sets up AP, DNS, and HTTP server
 dns.py       — minimal UDP DNS server (answers all queries with Pi's IP)
 server.py    — non-blocking HTTP server (GET /, GET /messages, POST /messages)
-index.html   — chat UI (vanilla JS, liquid glass design, no dependencies)
+http/index.html   — chat UI (vanilla JS, liquid glass design, no dependencies)
 ```
 
 ## Deploying to the Pico
@@ -66,13 +66,13 @@ mpremote connect auto repl
 
 ## Configuration
 
-Edit the top of `main.py` to change settings:
+Edit the top of `main.py` and `server.py` to change settings:
 
 | Variable | Default | Description |
 |---|---|---|
 | `AP_SSID` | `"PevaPub"` | WiFi network name |
 | `AP_PASSWORD` | `""` | Empty = open network |
-| `MAX_MESSAGES` | `10` | Messages kept in RAM |
+| `MAX_MESSAGES` | `20` | Messages kept in RAM |
 | `MAX_USERNAME` | `10` | Max username length |
 | `MAX_MESSAGE` | `250` | Max message length |
 
@@ -80,4 +80,4 @@ Edit the top of `main.py` to change settings:
 
 - **Messages are in RAM** — lost on reboot.
 - **No persistence** — there is no filesystem-based message log.
-- **DNS resolves everything to the Pi** — any domain typed in a browser will point here, which is intentional for captive portal behaviour.
+- **DNS redirects everything to the Pi** — any domain typed in a browser will point here, which is intentional for captive portal behaviour.
