@@ -16,9 +16,9 @@
 
     body {
       font-family: monospace;
-      background: linear-gradient(160deg, #4a9cc7 0%, #3a8fd4 40%, #2a7fd4 100%);
+      background: linear-gradient(160deg, #1f1d2e 0%, #191724 40%, #26233a 100%);
       background-attachment: fixed;
-      color: #fff;
+      color: #e0def4;
       display: flex;
       flex-direction: column;
       position: fixed;
@@ -36,7 +36,7 @@
 
     h1 {
       font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.6);
+      color: rgba(49,116,143,0.4);
       letter-spacing: 0.12em;
       text-transform: uppercase;
     }
@@ -55,14 +55,14 @@
       border-radius: 8px;
       font-size: 1.1rem;
       text-decoration: none;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(224,222,244,0.06);
+      border: 1px solid rgba(224,222,244,0.1);
       transition: background 0.15s;
       line-height: 1;
     }
 
     nav a:hover {
-      background: rgba(255, 255, 255, 0.28);
+      background: rgba(224,222,244,0.12);
     }
 
     nav a.disabled {
@@ -89,9 +89,9 @@
 
     #name-entry input {
       flex: 1;
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      color: #fff;
+      background: rgba(224,222,244,0.1);
+      border: 1px solid rgba(224,222,244,0.15);
+      color: #e0def4;
       padding: 8px 10px;
       font-family: monospace;
       font-size: 0.9rem;
@@ -101,13 +101,13 @@
     }
 
     #name-entry input::placeholder {
-      color: rgba(255, 255, 255, 0.45);
+      color: rgba(224,222,244,0.2);
     }
 
     .btn {
-      background: rgba(255, 255, 255, 0.88);
-      color: #2a7fd4;
-      border: 1px solid rgba(255, 255, 255, 0.6);
+      background: rgba(49,116,143,0.6);
+      color: #e0def4;
+      border: 1px solid rgba(49,116,143,0.4);
       padding: 8px 14px;
       font-family: monospace;
       font-weight: bold;
@@ -120,7 +120,7 @@
     }
 
     .btn:active {
-      background: rgba(255, 255, 255, 0.65);
+      background: rgba(49,116,143,0.8);
     }
 
     .btn:disabled {
@@ -135,17 +135,17 @@
       flex-direction: column;
       gap: 6px;
       padding: 10px 12px;
-      background: rgba(255, 255, 255, 0.18);
+      background: rgba(224,222,244,0.04);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(224,222,244,0.08);
       border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(224,222,244,0.2);
     }
 
     .game-item {
       padding: 8px 10px;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(224,222,244,0.04);
       border-radius: 8px;
       display: flex;
       justify-content: space-between;
@@ -155,7 +155,7 @@
     }
 
     .game-item:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(224,222,244,0.1);
     }
 
     .game-item .info {
@@ -166,7 +166,7 @@
       font-size: 0.7rem;
       padding: 2px 6px;
       border-radius: 4px;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(224,222,244,0.1);
     }
 
     /* --- Game view --- */
@@ -180,7 +180,7 @@
 
     #game-info {
       font-size: 0.75rem;
-      color: rgba(255, 255, 255, 0.5);
+      color: rgba(224,222,244,0.2);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -198,8 +198,8 @@
       display: grid;
       grid-template-columns: repeat(9, 1fr);
       grid-template-rows: repeat(9, 1fr);
-      border: 2px solid rgba(255, 255, 255, 0.5);
-      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid rgba(224,222,244,0.2);
+      background: rgba(224,222,244,0.03);
       border-radius: 4px;
       aspect-ratio: 1;
       height: 100%;
@@ -211,7 +211,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(224,222,244,0.06);
       font-size: min(5vw, 1.6rem);
       cursor: pointer;
       position: relative;
@@ -223,15 +223,15 @@
     }
 
     .cell.selected {
-      background: rgba(74, 222, 128, 0.35);
+      background: rgba(49, 116, 143, 0.35);
     }
 
     .cell.highlight {
-      background: rgba(251, 191, 36, 0.3);
+      background: rgba(196, 167, 231, 0.3);
     }
 
     .cell.highlight:hover {
-      background: rgba(251, 191, 36, 0.5);
+      background: rgba(196, 167, 231, 0.5);
     }
 
     .cell .piece {
@@ -243,15 +243,15 @@
     }
 
     .cell .piece.promoted {
-      color: #fbbf24;
+      color: #f6c177;
     }
 
     .cell .piece.gold {
-      color: #d4a017;
+      color: #f6c177;
     }
 
     .cell .piece.silver {
-      color: #fff;
+      color: #e0def4;
     }
 
     /* --- Captured pieces drawer --- */
@@ -259,9 +259,9 @@
       display: flex;
       gap: 6px;
       padding: 6px 10px;
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(224,222,244,0.05);
       border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(224,222,244,0.1);
       min-height: 40px;
     }
 
@@ -285,11 +285,11 @@
     }
 
     .hand-piece:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(224,222,244,0.1);
     }
 
     .hand-piece.selected {
-      background: rgba(74, 222, 128, 0.35);
+      background: rgba(49, 116, 143, 0.35);
     }
 
     .hand-piece.p2 {
@@ -298,7 +298,7 @@
 
     .hand-label {
       font-size: 0.6rem;
-      color: rgba(255, 255, 255, 0.4);
+      color: rgba(224,222,244,0.15);
       writing-mode: vertical-lr;
     }
 
@@ -318,9 +318,9 @@
     }
 
     #promo-box {
-      background: rgba(40, 80, 140, 0.95);
+      background: rgba(38, 35, 58, 0.95);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(224,222,244,0.12);
       border-radius: 12px;
       padding: 16px;
       text-align: center;
@@ -348,17 +348,17 @@
       font-size: 1.8rem;
       border-radius: 8px;
       cursor: pointer;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(224,222,244,0.12);
+      background: rgba(224,222,244,0.04);
       transition: background 0.15s;
     }
 
     .promo-choice:hover {
-      background: rgba(255, 255, 255, 0.25);
+      background: rgba(224,222,244,0.1);
     }
 
     .promo-choice .promoted {
-      color: #fbbf24;
+      color: #f6c177;
     }
 
     #back-btn {
@@ -384,7 +384,7 @@
       <button class="btn" id="create-btn" disabled>Create game</button>
       <a href="/shogi-info.html" class="btn" style="text-decoration:none;text-align:center;">Rules</a>
     </div>
-    <div id="games-list"><span style="color:rgba(255,255,255,0.4);font-size:0.8rem;">loading...</span></div>
+    <div id="games-list"><span style="color:rgba(224,222,244,0.4);font-size:0.8rem;">loading...</span></div>
   </div>
 
   <!-- Game view -->
@@ -481,13 +481,13 @@
         const games = await api('/api/games', 'GET');
         renderLobby(games);
       } catch (e) {
-        gamesList.innerHTML = '<span style="color:rgba(255,255,255,0.4);font-size:0.8rem;">failed to load</span>';
+        gamesList.innerHTML = '<span style="color:rgba(224,222,244,0.4);font-size:0.8rem;">failed to load</span>';
       }
     }
 
     function renderLobby(games) {
       if (!games.length) {
-        gamesList.innerHTML = '<span style="color:rgba(255,255,255,0.4);font-size:0.8rem;">no games yet</span>';
+        gamesList.innerHTML = '<span style="color:rgba(224,222,244,0.4);font-size:0.8rem;">no games yet</span>';
         return;
       }
       let html = '';

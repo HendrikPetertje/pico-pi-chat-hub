@@ -1,0 +1,113 @@
+.sprite-broken-cobles {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 77px;
+     width: 88px;
+     background-position: -1px -7px;
+ }
+ .sprite-character-1 {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 91px;
+     width: 90px;
+     background-position: -90px -0px;
+ }
+ .sprite-character-2 {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 91px;
+     width: 90px;
+     background-position: -180px -0px;
+ }
+ .sprite-character-3 {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 91px;
+     width: 90px;
+     background-position: -270px -0px;
+ }
+ .sprite-character-4 {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 91px;
+     width: 90px;
+     background-position: -0px -91px;
+ }
+ .sprite-character-5 {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 91px;
+     width: 90px;
+     background-position: -90px -91px;
+ }
+ .sprite-character-6 {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 91px;
+     width: 90px;
+     background-position: -180px -91px;
+ }
+ .sprite-character-7 {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 91px;
+     width: 90px;
+     background-position: -270px -91px;
+ }
+ .sprite-character-8 {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 91px;
+     width: 90px;
+     background-position: -0px -182px;
+ }
+ .sprite-cobles {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 77px;
+     width: 88px;
+     background-position: -91px -189px;
+ }
+ .sprite-cobles-2 {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 77px;
+     width: 88px;
+     background-position: -181px -189px;
+ }
+ .sprite-dirty_grass {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 77px;
+     width: 88px;
+     background-position: -271px -189px;
+ }
+ .sprite-grass {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 77px;
+     width: 88px;
+     background-position: -1px -280px;
+ }
+ .sprite-rocky_grass {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 77px;
+     width: 88px;
+     background-position: -91px -280px;
+ }
+ .sprite-shore-line {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 77px;
+     width: 88px;
+     background-position: -181px -280px;
+ }
+ .sprite-water {
+     background: url(sprite_sheet.png);
+     display: inline-block;
+     height: 77px;
+     width: 88px;
+     background-position: -271px -280px;
+ }
+ 
