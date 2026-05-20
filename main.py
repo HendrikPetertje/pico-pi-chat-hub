@@ -6,6 +6,7 @@ from dns import DNSServer
 from server import HTTPServer
 from messages_controller import MessagesController
 from games_controller import GamesController
+from square_controller import SquareController
 
 # --- Config ---
 AP_SSID = "PevaPub"
@@ -45,7 +46,8 @@ def main():
     dns = DNSServer(ip)
     messages = MessagesController()
     games = GamesController()
-    http = HTTPServer(messages, games)
+    square = SquareController()
+    http = HTTPServer(messages, games, square)
     print(f"DNS  listening on {ip}:53")
     print(f"HTTP listening on {ip}:80")
     print(f"Visit http://{ip}/ after connecting to '{AP_SSID}'")

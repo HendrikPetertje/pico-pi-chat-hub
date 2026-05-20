@@ -2,11 +2,31 @@ import socket
 import uselect
 import uos
 import time
+import gc
 
 
+
+MIME_TYPES = {
+    ".html": "text/html; charset=utf-8",
+    ".css": "text/css",
+    ".js": "application/javascript",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon",
+}
+
+
+def _mime_for(path):
+    for ext, mime in MIME_TYPES.items():
+        if path.endswith(ext):
+            return mime
+    return "application/octet-stream"
 
 HTTP_ROOT = "http"
-
 
 HEADERS_200_HTML = (
     "HTTP/1.1 200 OK\r\n"
@@ -40,14 +60,23 @@ HEADERS_405 = (
 
 HEADERS_302 = (
     "HTTP/1.1 302 Found\r\n"
-    "Content-Type: text/plain\r\n"
+    "Content-Type: text/html; charset=utf-8\r\n"
     "Location: http://192.168.4.1/\r\n"
     "Connection: close\r\n"
 )
 
+# Captive portal detection paths — respond with redirect to trigger portal popup
+CAPTIVE_PATHS = frozenset([
+    "/generate_204", "/gen_204", "/ncsi.txt",
+    "/hotspot-detect.html", "/library/test/success.html",
+    "/connecttest.txt", "/redirect", "/success.txt",
+    "/canonical.html", "/favicon.ico",
+])
+
 MAX_HEADER_SIZE = 4096   # bytes; cap unbounded header reads
 MAX_BODY_SIZE   = 1024   # bytes; cap POST body
-CONN_TIMEOUT    = 15     # seconds; drop slow/hung clients
+CONN_TIMEOUT    = 10     # seconds; drop slow/hung clients
+MAX_CLIENTS     = 6      # max simultaneous connections
 
 
 def _send(conn, headers, body):
@@ -87,9 +116,10 @@ def _parse_buf(buf):
 
 
 class HTTPServer:
-    def __init__(self, messages_controller, games_controller=None):
+    def __init__(self, messages_controller, games_controller=None, square_controller=None):
         self.messages_controller = messages_controller
         self.games_controller = games_controller
+        self.square_controller = square_controller
 
     def _dispatch(self, conn, method, path, body):
         print(method, path)
@@ -107,6 +137,8 @@ class HTTPServer:
             self.messages_controller.handle(conn, method, body)
         elif path.startswith("/api/games") and self.games_controller:
             self.games_controller.handle(conn, method, path, body)
+        elif path.startswith("/api/square") and self.square_controller:
+            self.square_controller.handle(conn, method, path, body)
         else:
             _send(conn, HEADERS_404, "Not Found")
 
@@ -115,6 +147,11 @@ class HTTPServer:
         if path == "/":
             path = "/index.html"
 
+        # Captive portal probes — minimal redirect to trigger portal popup
+        if path in CAPTIVE_PATHS:
+            _send(conn, HEADERS_302, "<html><body><a href='http://192.168.4.1/'>here</a></body></html>")
+            return
+
         # Reject any path that tries to escape the http root
         if ".." in path:
             _send(conn, HEADERS_404, "Not Found")
@@ -122,29 +159,40 @@ class HTTPServer:
 
         file_path = HTTP_ROOT + path
         if not self._stream_file(conn, file_path):
-            # File not found — redirect to root (captive portal trigger)
-            _send(conn, HEADERS_302, "Redirecting...")
+            _send(conn, HEADERS_404, "Not Found")
 
     def _stream_file(self, conn, file_path):
         try:
             size = uos.stat(file_path)[6]
-            header = (HEADERS_200_HTML + "Content-Length: {}\r\n\r\n".format(size)).encode()
-            conn.sendall(header)
+        except OSError:
+            return False
+        mime = _mime_for(file_path)
+        # Cache static assets aggressively (images indefinitely, HTML for 60s)
+        if mime.startswith("image/"):
+            cache = "Cache-Control: public, max-age=86400\r\n"
+        elif mime.startswith("text/html"):
+            cache = "Cache-Control: public, max-age=60\r\n"
+        else:
+            cache = "Cache-Control: public, max-age=3600\r\n"
+        header = "HTTP/1.1 200 OK\r\nContent-Type: {}\r\n{}Connection: close\r\nContent-Length: {}\r\n\r\n".format(mime, cache, size)
+        try:
+            conn.sendall(header.encode())
             with open(file_path, "rb") as f:
                 while True:
-                    chunk = f.read(512)
+                    chunk = f.read(2048)
                     if not chunk:
                         break
                     conn.sendall(chunk)
-            return True
+                    time.sleep_ms(2)  # yield to network stack
         except OSError:
-            return False
+            pass  # client disconnected mid-transfer, that's ok
+        return True
 
     def run(self):
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         srv.bind(("0.0.0.0", 80))
-        srv.listen(5)
+        srv.listen(8)
         srv.setblocking(False)
 
         poll = uselect.poll()
@@ -155,20 +203,29 @@ class HTTPServer:
 
         print("HTTP server running")
 
+        gc_counter = 0
+
         while True:
             try:
-                events = poll.poll(1000)
+                events = poll.poll(100)
             except Exception as e:
                 print("poll error:", e)
                 continue
 
             now = time.time()
+            gc_counter += 1
+            if gc_counter >= 50:  # every ~5 seconds
+                gc.collect()
+                gc_counter = 0
 
             for obj, event in events:
                 if obj is srv:
                     # New incoming connection
                     try:
                         conn, addr = srv.accept()
+                        if len(clients) >= MAX_CLIENTS:
+                            conn.close()
+                            continue
                         conn.setblocking(False)
                         poll.register(conn, uselect.POLLIN)
                         clients[conn] = (b"", now)
@@ -185,7 +242,7 @@ class HTTPServer:
 
                     # Read available data
                     try:
-                        chunk = conn.recv(256)
+                        chunk = conn.recv(1024)
                     except OSError:
                         chunk = b""
 
