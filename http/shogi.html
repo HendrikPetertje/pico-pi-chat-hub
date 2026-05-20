@@ -447,7 +447,7 @@
     const handTop = document.getElementById('hand-top');
     const handBottom = document.getElementById('hand-bottom');
 
-    let myName = localStorage.getItem('pi-room-shogi-name') || '';
+    let myName = localStorage.getItem('pi-room-user') || '';
     let myPlayer = null; // 1 or 2
     let currentGame = null;
     let selectedCell = null; // {r, c} or null
@@ -459,7 +459,7 @@
     nameInput.value = myName;
     nameInput.addEventListener('input', () => {
       myName = nameInput.value.trim();
-      localStorage.setItem('pi-room-shogi-name', myName);
+      localStorage.setItem('pi-room-user', myName);
       createBtn.disabled = !myName;
     });
     createBtn.disabled = !myName;
